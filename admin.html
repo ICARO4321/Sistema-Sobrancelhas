@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Gerenciador | Lala Sobrancelhas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="admin-body">
+    <header class="admin-header">
+        <h2>Painel da Lala ✨</h2>
+        <button onclick="fazerLogout()" class="btn-outline">Sair</button>
+    </header>
+
+    <main class="admin-container">
+        <section class="admin-card">
+            <h3>Cadastrar Novo Serviço</h3>
+            <form id="form-servico">
+                <div class="input-group">
+                    <label>Nome do Procedimento</label>
+                    <input type="text" id="serv_nome" required>
+                </div>
+                <div class="input-group">
+                    <label>Preço (R$)</label>
+                    <input type="number" step="0.01" id="serv_preco" required>
+                </div>
+                <div class="input-group">
+                    <label>Tempo (Minutos)</label>
+                    <input type="number" id="serv_tempo" required>
+                </div>
+                <button type="submit" class="btn-primary">Salvar Serviço</button>
+            </form>
+            <div id="msg-servico" class="mensagem-oculta"></div>
+        </section>
+
+        <section class="admin-card">
+            <h3>Horários Marcados</h3>
+            <div class="agenda-lista" id="lista-agenda">
+                <p>Carregando agenda...</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

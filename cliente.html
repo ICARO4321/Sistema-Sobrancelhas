@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento | Lala Sobrancelhas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="cliente-body">
+    <header class="hero">
+        <div class="hero-content">
+            <h1 id="bem-vindo-cliente">Olá!</h1>
+            <p>Realce o seu olhar com um design perfeito e exclusivo.</p>
+            <button onclick="fazerLogout()" class="btn-outline" style="margin-top: 15px;">Sair da Conta</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="services-section">
+            <h2>Nossos Serviços</h2>
+            <div class="services-grid" id="services-container">
+                <p class="loading">Carregando serviços...</p>
+            </div>
+        </section>
+
+        <section class="booking-section">
+            <h2>Agende seu Horário</h2>
+            <form id="booking-form" class="booking-form">
+                <div class="input-group">
+                    <label for="servico_id">Escolha o Serviço</label>
+                    <select id="servico_id" name="servico_id" required>
+                        <option value="" disabled selected>Selecione...</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="data_hora">Data e Horário</label>
+                    <input type="datetime-local" id="data_hora" name="data_hora" required>
+                </div>
+
+                <button type="submit" class="btn-primary">Confirmar Agendamento</button>
+            </form>
+            <div id="mensagem-retorno" class="mensagem-oculta"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Lala Sobrancelhas. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

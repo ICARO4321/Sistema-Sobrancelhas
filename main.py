@@ -24,7 +24,7 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-app = FastAPI(title='Sistema de Sobrancelhas API', version='1.0')
+app = FastAPI(title='Sistema Lala Sobrancelhas', version='1.0')
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,7 +33,6 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
-
 
 # ==========================================
 # MODELS
@@ -47,7 +46,6 @@ class Usuario(Base):
   senha = Column(String(255), nullable=False)
   tipo = Column(Enum('cliente', 'admin'), default='cliente')
 
-
 class Servico(Base):
   __tablename__ = 'servicos'
   id = Column(Integer, primary_key=True, index=True)
@@ -55,7 +53,6 @@ class Servico(Base):
   descricao = Column(Text)
   preco = Column(Numeric(10, 2), nullable=False)
   duracao_minutos = Column(Integer, nullable=False)
-
 
 class Agendamento(Base):
   __tablename__ = 'agendamentos'
@@ -69,22 +66,23 @@ class Agendamento(Base):
       default='confirmado',
   )
 
-
 # ==========================================
 # SCHEMAS (Pydantic)
 # ==========================================
+class LoginRequest(BaseModel):
+  email: str
+  senha: str
+
 class ServicoCreate(BaseModel):
   nome: str
   descricao: Optional[str] = None
   preco: float
   duracao_minutos: int
 
-
 class AgendamentoCreate(BaseModel):
   cliente_id: int
   servico_id: int
   data_hora_inicio: datetime
-
 
 def get_db():
   db = SessionLocal()
@@ -93,48 +91,35 @@ def get_db():
   finally:
     db.close()
 
-
 # ==========================================
 # ROTAS DA API
 # ==========================================
-@app.get('/')
-def root():
-  return {'status': 'FastAPI rodando com sucesso!'}
+@app.post('/api/login')
+def fazer_login(dados: LoginRequest, db: Session = Depends(get_db)):
+  usuario = db.query(Usuario).filter(Usuario.email == dados.email).first()
+  if not usuario or usuario.senha != dados.senha:
+    raise HTTPException(status_code=401, detail='Email ou senha incorretos.')
+  return {"id": usuario.id, "nome": usuario.nome, "tipo": usuario.tipo}
 
-
-# --- SERVIÇOS ---
 @app.post('/api/servicos')
-def criar_servico(
-    servico: ServicoCreate, db: Session = Depends(get_db)
-):
+def criar_servico(servico: ServicoCreate, db: Session = Depends(get_db)):
   novo_servico = Servico(**servico.dict())
   db.add(novo_servico)
   db.commit()
   db.refresh(novo_servico)
   return novo_servico
 
-
 @app.get('/api/servicos')
 def listar_servicos(db: Session = Depends(get_db)):
   return db.query(Servico).all()
 
-
-# --- AGENDAMENTOS ---
 @app.post('/api/agendamentos')
-def criar_agendamento(
-    dados: AgendamentoCreate, db: Session = Depends(get_db)
-):
-  servico = (
-      db.query(Servico).filter(Servico.id == dados.servico_id).first()
-  )
+def criar_agendamento(dados: AgendamentoCreate, db: Session = Depends(get_db)):
+  servico = db.query(Servico).filter(Servico.id == dados.servico_id).first()
   if not servico:
     raise HTTPException(status_code=404, detail='Serviço não encontrado.')
 
-  data_fim = dados.data_hora_inicio + timedelta(
-      minutes=servico.duracao_minutos
-  )
-
-  # Verifica choque de horários
+  data_fim = dados.data_hora_inicio + timedelta(minutes=servico.duracao_minutos)
   conflito = (
       db.query(Agendamento)
       .filter(
@@ -146,10 +131,7 @@ def criar_agendamento(
   )
 
   if conflito:
-    raise HTTPException(
-        status_code=400,
-        detail='Horário indisponível! Escolha outro momento.',
-    )
+    raise HTTPException(status_code=400, detail='Horário indisponível! Escolha outro momento.')
 
   novo_agendamento = Agendamento(
       cliente_id=dados.cliente_id,
@@ -163,19 +145,15 @@ def criar_agendamento(
   db.refresh(novo_agendamento)
   return novo_agendamento
 
-
 @app.get('/api/agendamentos')
 def listar_agendamentos(db: Session = Depends(get_db)):
   return db.query(Agendamento).all()
 
-
-# --- PAINEL ADMIN ---
 @app.get('/api/admin/faturamento')
 def faturamento_mes(db: Session = Depends(get_db)):
   try:
     ano_atual = datetime.now().year
     mes_atual = datetime.now().month
-
     resultado = (
         db.query(func.sum(Servico.preco))
         .join(Agendamento, Agendamento.servico_id == Servico.id)
@@ -186,12 +164,6 @@ def faturamento_mes(db: Session = Depends(get_db)):
         )
         .scalar()
     )
-
-    faturamento_total = float(resultado) if resultado else 0.0
-    return {
-        'mes': mes_atual,
-        'ano': ano_atual,
-        'faturamento_bruto': faturamento_total,
-    }
+    return {'mes': mes_atual, 'ano': ano_atual, 'faturamento_bruto': float(resultado) if resultado else 0.0}
   except Exception as e:
     raise HTTPException(status_code=500, detail=str(e))

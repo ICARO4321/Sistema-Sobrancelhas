@@ -1,7 +1,7 @@
 // Alterna dinamicamente entre o backend local e o backend do Render
 const API_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
     ? 'http://127.0.0.1:8000/api'
-    : 'https://sistema-sobrancelhas-api.onrender.com/api'; // Substitua pelo seu link do Render depois do deploy
+    : 'https://sistema-sobrancelhas.onrender.com/api';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Tela de Login

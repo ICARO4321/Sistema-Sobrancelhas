@@ -4,20 +4,25 @@ const API_URL = window.location.hostname === '127.0.0.1' || window.location.host
     : 'https://sistema-sobrancelhas-api.onrender.com/api'; // Substitua pelo seu link do Render depois do deploy
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Tela de Login
     if (document.getElementById('login-form')) {
         document.getElementById('login-form').addEventListener('submit', fazerLogin);
     }
 
+    // Tela de Cadastro
     if (document.getElementById('cadastro-form')) {
         document.getElementById('cadastro-form').addEventListener('submit', cadastrarUsuario);
     }
     
+    // Tela de Admin
     if (document.getElementById('form-servico')) {
         verificarAcesso('admin');
         document.getElementById('form-servico').addEventListener('submit', cadastrarServico);
         carregarAgenda();
+        carregarFaturamento();
     }
 
+    // Tela de Cliente
     if (document.getElementById('booking-form')) {
         verificarAcesso('cliente');
         configurarNomeCliente();
@@ -26,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
+// --- AUTENTICAÇÃO ---
 async function fazerLogin(e) {
     e.preventDefault();
     const email = document.getElementById('email').value;
@@ -101,6 +107,7 @@ function verificarAcesso(tipoNecessario) {
     }
 }
 
+// --- PAINEL ADMIN ---
 async function cadastrarServico(e) {
     e.preventDefault();
     const nome = document.getElementById('serv_nome').value;
@@ -118,6 +125,7 @@ async function cadastrarServico(e) {
         if (res.ok) {
             mostrarMensagem(msg, 'Serviço cadastrado com sucesso!', 'sucesso');
             document.getElementById('form-servico').reset();
+            carregarServicosCliente();
         } else {
             mostrarMensagem(msg, 'Erro ao cadastrar.', 'erro');
         }
@@ -128,6 +136,8 @@ async function cadastrarServico(e) {
 
 async function carregarAgenda() {
     const lista = document.getElementById('lista-agenda');
+    if (!lista) return;
+
     try {
         const res = await fetch(`${API_URL}/agendamentos`);
         const agendamentos = await res.json();
@@ -155,21 +165,41 @@ async function carregarAgenda() {
     }
 }
 
+async function carregarFaturamento() {
+    const elemFat = document.getElementById('faturamento-valor');
+    if (!elemFat) return;
+
+    try {
+        const res = await fetch(`${API_URL}/admin/faturamento`);
+        if (res.ok) {
+            const data = await res.json();
+            elemFat.textContent = `R$ ${data.faturamento_bruto.toFixed(2)}`;
+        }
+    } catch (error) {
+        console.error('Erro ao buscar faturamento:', error);
+    }
+}
+
+// --- PAINEL CLIENTE ---
 function configurarNomeCliente() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
-    if (user && user.nome) {
+    if (user && user.nome && document.getElementById('bem-vindo-cliente')) {
         document.getElementById('bem-vindo-cliente').textContent = `Olá, ${user.nome}!`;
     }
 }
 
 async function carregarServicosCliente() {
+    const container = document.getElementById('services-container');
+    const select = document.getElementById('servico_id');
+    if (!container || !select) return;
+
     try {
         const response = await fetch(`${API_URL}/servicos`);
         const servicos = await response.json();
-        const container = document.getElementById('services-container');
-        const select = document.getElementById('servico_id');
         
         container.innerHTML = '';
+        select.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+
         if (servicos.length === 0) {
             container.innerHTML = '<p>Nenhum serviço disponível no momento.</p>';
             return;
@@ -180,18 +210,18 @@ async function carregarServicosCliente() {
             card.className = 'service-card';
             card.innerHTML = `
                 <h3>${servico.nome}</h3>
-                <div class="price">R$ ${servico.preco.toFixed(2)}</div>
+                <div class="price">R$ ${parseFloat(servico.preco).toFixed(2)}</div>
                 <small>Duração: ${servico.duracao_minutos} min</small>
             `;
             container.appendChild(card);
 
             const option = document.createElement('option');
             option.value = servico.id;
-            option.textContent = `${servico.nome} - R$ ${servico.preco.toFixed(2)}`;
+            option.textContent = `${servico.nome} - R$ ${parseFloat(servico.preco).toFixed(2)}`;
             select.appendChild(option);
         });
     } catch (error) {
-        document.getElementById('services-container').innerHTML = '<p>Erro ao carregar os serviços.</p>';
+        container.innerHTML = '<p>Erro ao carregar os serviços.</p>';
     }
 }
 
@@ -227,7 +257,9 @@ async function realizarAgendamento(event) {
     }
 }
 
+// --- UTILITÁRIOS ---
 function mostrarMensagem(elemento, texto, tipo) {
+    if (!elemento) return;
     elemento.textContent = texto;
     elemento.className = `msg-box ${tipo}`;
     elemento.style.display = 'block';

@@ -1,24 +1,23 @@
-const API_URL = 'http://127.0.0.1:8000/api';
+// Alterna dinamicamente entre o backend local e o backend do Render
+const API_URL = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost'
+    ? 'http://127.0.0.1:8000/api'
+    : 'https://sistema-sobrancelhas-api.onrender.com/api'; // Substitua pelo seu link do Render depois do deploy
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Tela de Login
     if (document.getElementById('login-form')) {
         document.getElementById('login-form').addEventListener('submit', fazerLogin);
     }
 
-    // Tela de Cadastro
     if (document.getElementById('cadastro-form')) {
         document.getElementById('cadastro-form').addEventListener('submit', cadastrarUsuario);
     }
     
-    // Tela de Admin
     if (document.getElementById('form-servico')) {
         verificarAcesso('admin');
         document.getElementById('form-servico').addEventListener('submit', cadastrarServico);
         carregarAgenda();
     }
 
-    // Tela de Cliente
     if (document.getElementById('booking-form')) {
         verificarAcesso('cliente');
         configurarNomeCliente();
@@ -27,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- FUNÇÕES DE LOGIN E CADASTRO ---
 async function fazerLogin(e) {
     e.preventDefault();
     const email = document.getElementById('email').value;
@@ -103,7 +101,6 @@ function verificarAcesso(tipoNecessario) {
     }
 }
 
-// --- FUNÇÕES DO ADMIN ---
 async function cadastrarServico(e) {
     e.preventDefault();
     const nome = document.getElementById('serv_nome').value;
@@ -158,7 +155,6 @@ async function carregarAgenda() {
     }
 }
 
-// --- FUNÇÕES DA CLIENTE ---
 function configurarNomeCliente() {
     const user = JSON.parse(localStorage.getItem('usuarioLogado'));
     if (user && user.nome) {
@@ -231,7 +227,6 @@ async function realizarAgendamento(event) {
     }
 }
 
-// --- UTILITÁRIOS ---
 function mostrarMensagem(elemento, texto, tipo) {
     elemento.textContent = texto;
     elemento.className = `msg-box ${tipo}`;

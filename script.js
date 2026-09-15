@@ -2,6 +2,9 @@ const API_URL = window.location.hostname === '127.0.0.1' || window.location.host
     ? 'http://127.0.0.1:8000/api'
     : 'https://sistema-sobrancelhas.onrender.com/api'; 
 
+// Variável global para armazenar a lista de clientes para a busca
+let listaClientesGlobal = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('login-form')) {
         document.getElementById('login-form').addEventListener('submit', fazerLogin);
@@ -14,11 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('form-servico')) {
         verificarAcesso('admin');
         document.getElementById('form-servico').addEventListener('submit', cadastrarServico);
-        
-        // Novo: Agendamento Manual do Admin
         document.getElementById('form-agendamento-admin').addEventListener('submit', agendarManualmente);
         
-        carregarDadosAdminAgendamento(); // Preenche os <selects> da Lala
+        carregarDadosAdminAgendamento(); 
         carregarAgenda();
         carregarFaturamento();
         carregarClientesHistorico(); 
@@ -115,7 +116,7 @@ async function cadastrarServico(e) {
         if (res.ok) {
             mostrarMensagem(msg, 'Serviço salvo!', 'sucesso');
             document.getElementById('form-servico').reset();
-            carregarDadosAdminAgendamento(); // Atualiza a lista da caixinha ao lado
+            carregarDadosAdminAgendamento(); 
         } else {
             mostrarMensagem(msg, 'Erro ao salvar.', 'erro');
         }
@@ -215,54 +216,69 @@ async function carregarClientesHistorico() {
 
     try {
         const res = await fetch(`${API_URL}/admin/clientes`);
-        const clientes = await res.json();
-
-        if (clientes.length === 0) {
-            divClientes.innerHTML = '<p>Nenhuma cliente cadastrada.</p>';
-            return;
-        }
-
-        divClientes.innerHTML = '';
-        clientes.forEach(c => {
-            let linhas = '';
-            if (c.historico.length > 0) {
-                c.historico.forEach(hist => {
-                    linhas += `
-                        <tr>
-                            <td>${hist.data} às ${hist.hora}</td>
-                            <td>${hist.servico}</td>
-                            <td>R$ ${hist.preco.toFixed(2)}</td>
-                        </tr>
-                    `;
-                });
-            } else {
-                linhas = `<tr><td colspan="3" class="sem-servico">Nenhum serviço realizado ainda.</td></tr>`;
-            }
-
-            divClientes.innerHTML += `
-                <div class="cliente-box">
-                    <h4>
-                        <span>${c.nome} <span class="telefone">${c.telefone}</span></span>
-                        <span class="badge-total">Total: R$ ${c.total_gasto.toFixed(2)}</span>
-                    </h4>
-                    <table class="historico-tabela">
-                        <thead>
-                            <tr>
-                                <th>Data/Hora</th>
-                                <th>Serviço</th>
-                                <th>Valor</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${linhas}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        });
+        listaClientesGlobal = await res.json(); // Salva os dados na variável global
+        renderizarListaClientes(listaClientesGlobal); // Renderiza a lista completa
     } catch (error) {
         divClientes.innerHTML = '<p>Erro ao carregar o histórico de clientes.</p>';
     }
+}
+
+function renderizarListaClientes(clientes) {
+    const divClientes = document.getElementById('lista-clientes');
+    if (!divClientes) return;
+
+    if (clientes.length === 0) {
+        divClientes.innerHTML = '<p>Nenhuma cliente encontrada.</p>';
+        return;
+    }
+
+    divClientes.innerHTML = '';
+    clientes.forEach(c => {
+        let linhas = '';
+        if (c.historico.length > 0) {
+            c.historico.forEach(hist => {
+                linhas += `
+                    <tr>
+                        <td>${hist.data} às ${hist.hora}</td>
+                        <td>${hist.servico}</td>
+                        <td>R$ ${hist.preco.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            linhas = `<tr><td colspan="3" class="sem-servico">Nenhum serviço realizado ainda.</td></tr>`;
+        }
+
+        divClientes.innerHTML += `
+            <div class="cliente-box">
+                <h4>
+                    <span>${c.nome} <span class="telefone">${c.telefone}</span></span>
+                    <span class="badge-total">Total: R$ ${c.total_gasto.toFixed(2)}</span>
+                </h4>
+                <table class="historico-tabela">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Serviço</th>
+                            <th>Valor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${linhas}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    });
+}
+
+function filtrarClientes() {
+    const termo = document.getElementById('busca-cliente').value.toLowerCase();
+    const filtrados = listaClientesGlobal.filter(c => 
+        c.nome.toLowerCase().includes(termo) || 
+        c.telefone.includes(termo)
+    );
+    renderizarListaClientes(filtrados);
 }
 
 // --- PAINEL CLIENTE ---

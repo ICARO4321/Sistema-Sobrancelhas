@@ -39,7 +39,7 @@
             <div id="msg-servico" class="mensagem-oculta"></div>
         </section>
 
-        <!-- CAIXA 2: AGENDAMENTO MANUAL (NOVO) -->
+        <!-- CAIXA 2: AGENDAMENTO MANUAL -->
         <section class="admin-card">
             <h3>Agendar Cliente Manualmente</h3>
             <form id="form-agendamento-admin">
@@ -72,9 +72,20 @@
             </div>
         </section>
 
-        <!-- CAIXA 4: HISTÓRICO DE CLIENTES -->
+        <!-- CAIXA 4: HISTÓRICO DE CLIENTES COM BUSCA -->
         <section class="admin-card full-width-card">
             <h3>Histórico de Clientes e Serviços</h3>
+            
+            <!-- Campo de Busca Instantânea -->
+            <div class="input-group" style="margin-bottom: 25px;">
+                <input 
+                    type="text" 
+                    id="busca-cliente" 
+                    placeholder="🔍 Pesquisar por nome ou telefone..." 
+                    oninput="filtrarClientes()"
+                >
+            </div>
+
             <div id="lista-clientes">
                 <p>Carregando clientes...</p>
             </div>

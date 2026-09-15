@@ -14,17 +14,16 @@ from sqlalchemy import (
     create_engine,
     extract,
     func,
+    desc
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import Session, sessionmaker
 
-# String de conexão do NeonDB
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
     "postgresql://neondb_owner:npg_84WmRSDQCaNK@ep-cool-dust-b55vvptg-pooler.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require"
 )
 
-# Trata a sintaxe caso o Render passe postgres:// em vez de postgresql://
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
@@ -72,7 +71,7 @@ class Agendamento(Base):
     status = Column(String(20), default="confirmado")
 
 # ==========================================
-# SCHEMAS (Pydantic)
+# SCHEMAS
 # ==========================================
 class LoginRequest(BaseModel):
     email: str
@@ -134,6 +133,11 @@ def criar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
     db.refresh(novo_usuario)
     return {"mensagem": "Usuário criado com sucesso!"}
 
+@app.get("/api/clientes")
+def listar_clientes_simples(db: Session = Depends(get_db)):
+    clientes = db.query(Usuario).filter(Usuario.tipo == "cliente").all()
+    return [{"id": c.id, "nome": c.nome, "telefone": c.telefone} for c in clientes]
+
 @app.post("/api/servicos")
 def criar_servico(servico: ServicoCreate, db: Session = Depends(get_db)):
     novo_servico = Servico(**servico.dict())
@@ -180,7 +184,7 @@ def criar_agendamento(dados: AgendamentoCreate, db: Session = Depends(get_db)):
 
 @app.get("/api/agendamentos")
 def listar_agendamentos(db: Session = Depends(get_db)):
-    return db.query(Agendamento).all()
+    return db.query(Agendamento).order_by(Agendamento.data_hora_inicio).all()
 
 @app.get("/api/admin/faturamento")
 def faturamento_mes(db: Session = Depends(get_db)):
@@ -200,3 +204,38 @@ def faturamento_mes(db: Session = Depends(get_db)):
         return {"mes": mes_atual, "ano": ano_atual, "faturamento_bruto": float(resultado) if resultado else 0.0}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/admin/clientes")
+def listar_clientes_historico(db: Session = Depends(get_db)):
+    clientes = db.query(Usuario).filter(Usuario.tipo == "cliente").all()
+    resultado = []
+    
+    for c in clientes:
+        historico = (
+            db.query(Agendamento, Servico)
+            .join(Servico, Agendamento.servico_id == Servico.id)
+            .filter(Agendamento.cliente_id == c.id)
+            .order_by(desc(Agendamento.data_hora_inicio))
+            .all()
+        )
+        
+        lista_hist = []
+        for ag, serv in historico:
+            lista_hist.append({
+                "data": ag.data_hora_inicio.strftime("%d/%m/%Y"),
+                "hora": ag.data_hora_inicio.strftime("%H:%M"),
+                "servico": serv.nome,
+                "preco": float(serv.preco)
+            })
+        
+        total_gasto = sum(item["preco"] for item in lista_hist)
+        
+        resultado.append({
+            "id": c.id,
+            "nome": c.nome,
+            "telefone": c.telefone,
+            "total_gasto": total_gasto,
+            "historico": lista_hist
+        })
+        
+    return resultado

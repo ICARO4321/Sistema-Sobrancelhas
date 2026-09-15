@@ -10,10 +10,15 @@
 <body class="admin-body">
     <header class="admin-header">
         <h2>Painel da Lala ✨</h2>
-        <button onclick="fazerLogout()" class="btn-outline">Sair</button>
+        <div>
+            <span style="margin-right: 15px; font-weight: 500;">Faturamento do Mês: <span id="faturamento-valor">R$ 0.00</span></span>
+            <button onclick="fazerLogout()" class="btn-outline">Sair</button>
+        </div>
     </header>
 
     <main class="admin-container">
+        
+        <!-- CAIXA 1: NOVO SERVIÇO -->
         <section class="admin-card">
             <h3>Cadastrar Novo Serviço</h3>
             <form id="form-servico">
@@ -34,10 +39,44 @@
             <div id="msg-servico" class="mensagem-oculta"></div>
         </section>
 
+        <!-- CAIXA 2: AGENDAMENTO MANUAL (NOVO) -->
         <section class="admin-card">
-            <h3>Horários Marcados</h3>
+            <h3>Agendar Cliente Manualmente</h3>
+            <form id="form-agendamento-admin">
+                <div class="input-group">
+                    <label>Selecionar Cliente</label>
+                    <select id="admin_cliente_id" required>
+                        <option value="" disabled selected>Carregando clientes...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Selecionar Serviço</label>
+                    <select id="admin_servico_id" required>
+                        <option value="" disabled selected>Carregando serviços...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Data e Horário</label>
+                    <input type="datetime-local" id="admin_data_hora" required>
+                </div>
+                <button type="submit" class="btn-primary">Agendar Horário</button>
+            </form>
+            <div id="msg-agendamento-admin" class="mensagem-oculta"></div>
+        </section>
+
+        <!-- CAIXA 3: AGENDA LISTA -->
+        <section class="admin-card full-width-card">
+            <h3>Próximos Horários</h3>
             <div class="agenda-lista" id="lista-agenda">
                 <p>Carregando agenda...</p>
+            </div>
+        </section>
+
+        <!-- CAIXA 4: HISTÓRICO DE CLIENTES -->
+        <section class="admin-card full-width-card">
+            <h3>Histórico de Clientes e Serviços</h3>
+            <div id="lista-clientes">
+                <p>Carregando clientes...</p>
             </div>
         </section>
     </main>

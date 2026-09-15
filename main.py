@@ -73,6 +73,12 @@ class LoginRequest(BaseModel):
   email: str
   senha: str
 
+class UsuarioCreate(BaseModel):
+  nome: str
+  telefone: str
+  email: str
+  senha: str
+
 class ServicoCreate(BaseModel):
   nome: str
   descricao: Optional[str] = None
@@ -100,6 +106,25 @@ def fazer_login(dados: LoginRequest, db: Session = Depends(get_db)):
   if not usuario or usuario.senha != dados.senha:
     raise HTTPException(status_code=401, detail='Email ou senha incorretos.')
   return {"id": usuario.id, "nome": usuario.nome, "tipo": usuario.tipo}
+
+@app.post('/api/usuarios')
+def criar_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db)):
+  # Verifica se o e-mail já existe
+  db_user = db.query(Usuario).filter(Usuario.email == usuario.email).first()
+  if db_user:
+    raise HTTPException(status_code=400, detail="E-mail já cadastrado.")
+  
+  novo_usuario = Usuario(
+    nome=usuario.nome,
+    telefone=usuario.telefone,
+    email=usuario.email,
+    senha=usuario.senha,
+    tipo='cliente'
+  )
+  db.add(novo_usuario)
+  db.commit()
+  db.refresh(novo_usuario)
+  return {"mensagem": "Usuário criado com sucesso!"}
 
 @app.post('/api/servicos')
 def criar_servico(servico: ServicoCreate, db: Session = Depends(get_db)):

@@ -5,6 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('login-form')) {
         document.getElementById('login-form').addEventListener('submit', fazerLogin);
     }
+
+    // Tela de Cadastro
+    if (document.getElementById('cadastro-form')) {
+        document.getElementById('cadastro-form').addEventListener('submit', cadastrarUsuario);
+    }
     
     // Tela de Admin
     if (document.getElementById('form-servico')) {
@@ -22,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- FUNÇÕES DE LOGIN ---
+// --- FUNÇÕES DE LOGIN E CADASTRO ---
 async function fazerLogin(e) {
     e.preventDefault();
     const email = document.getElementById('email').value;
@@ -50,6 +55,36 @@ async function fazerLogin(e) {
         }
     } catch (error) {
         mostrarMensagem(msg, 'Erro ao conectar ao servidor.', 'erro');
+    }
+}
+
+async function cadastrarUsuario(e) {
+    e.preventDefault();
+    const nome = document.getElementById('nome').value;
+    const telefone = document.getElementById('telefone').value;
+    const email = document.getElementById('email').value;
+    const senha = document.getElementById('senha').value;
+    const msg = document.getElementById('cadastro-msg');
+
+    try {
+        const res = await fetch(`${API_URL}/usuarios`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome, telefone, email, senha })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            mostrarMensagem(msg, 'Conta criada com sucesso! Redirecionando...', 'sucesso');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+        } else {
+            mostrarMensagem(msg, data.detail || 'Erro ao criar conta.', 'erro');
+        }
+    } catch (error) {
+        mostrarMensagem(msg, 'Erro de conexão com o servidor.', 'erro');
     }
 }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Lala Sobrancelhas</title>
+    <title>Cadastro | Lala Sobrancelhas</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
@@ -11,23 +11,31 @@
     <div class="login-card">
         <div class="brand">
             <h1>Lala Sobrancelhas</h1>
-            <p>Acesse sua conta</p>
+            <p>Crie sua conta para agendar</p>
         </div>
-        <form id="login-form">
+        <form id="cadastro-form">
+            <div class="input-group">
+                <label for="nome">Nome Completo</label>
+                <input type="text" id="nome" required placeholder="Seu nome">
+            </div>
+            <div class="input-group">
+                <label for="telefone">WhatsApp</label>
+                <input type="text" id="telefone" required placeholder="(00) 00000-0000">
+            </div>
             <div class="input-group">
                 <label for="email">E-mail</label>
                 <input type="email" id="email" required placeholder="seu@email.com">
             </div>
             <div class="input-group">
-                <label for="senha">Senha</label>
+                <label for="senha">Crie uma Senha</label>
                 <input type="password" id="senha" required placeholder="••••••••">
             </div>
-            <button type="submit" class="btn-primary">Entrar</button>
+            <button type="submit" class="btn-primary">Criar Conta</button>
         </form>
         
-        <p class="link-rodape">Não tem uma conta? <a href="cadastro.html">Cadastre-se aqui</a></p>
+        <p class="link-rodape">Já tem uma conta? <a href="index.html">Faça login</a></p>
         
-        <div id="login-msg" class="mensagem-oculta"></div>
+        <div id="cadastro-msg" class="mensagem-oculta"></div>
     </div>
     <script src="script.js"></script>
 </body>
